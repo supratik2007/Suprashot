@@ -1,0 +1,63 @@
+int red = 9;
+int yellow = 10;
+int green = 11;
+int buttonPin = 2;   // Pin connected to the push button
+
+int interval = 5000;      // Time interval for each light (5 seconds for more delay)
+unsigned long prev = 0;  // Start at 0 to begin timing from the start
+
+int buttonState = 0;    // To store the current button state
+int lastButtonState = 0;  // To store the previous button state
+bool pedestrianCrossing = false;  // Track whether pedestrian crossing is on or not
+
+void setup() {
+  pinMode(red, OUTPUT);
+  pinMode(yellow, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP); // Use internal pull-up resistor for button
+}
+
+void loop() {
+  unsigned long current = millis();  // Get the current time
+
+  // Read the button state (button is pressed when it's LOW)
+  buttonState = digitalRead(buttonPin);
+
+  // Check if the button is pressed
+  if (buttonState == LOW && lastButtonState == HIGH) {
+    pedestrianCrossing = true;  // Activate pedestrian crossing
+    prev = current;  // Reset the timer to immediately turn red
+  }
+
+  // Update the last button state
+  lastButtonState = buttonState;
+
+  if (pedestrianCrossing) {
+    digitalWrite(red, HIGH);
+    digitalWrite(green, LOW);
+    digitalWrite(yellow, LOW);
+
+    // Wait for 5 seconds while the red light is on for pedestrians
+    if (current - prev >= interval) {
+      pedestrianCrossing = false;  // Deactivate pedestrian crossing
+      prev = current;  // Reset the timer for the next cycle
+    }
+  } else {
+    if (current - prev >= interval) {  // Check if the interval has passed
+      // Cycle through the lights if pedestrian crossing is not on
+      digitalWrite(green, HIGH);
+      delay(5000);  // Green for 5 seconds
+      digitalWrite(green, LOW);
+
+      digitalWrite(yellow, HIGH);
+      delay(2000);  // Yellow for 2 seconds
+      digitalWrite(yellow, LOW);
+
+      digitalWrite(red, HIGH);
+      delay(5000);  // Red for 5 seconds
+      digitalWrite(red, LOW);
+
+      prev = current;  // Save the current time for the next cycle
+    }
+  }
+}
